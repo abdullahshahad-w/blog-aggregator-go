@@ -35,6 +35,8 @@ func main() {
 	commandsStruct.Register("reset", command.ResetHandler)
 	commandsStruct.Register("users", command.UsersHandler)
 	commandsStruct.Register("agg", command.AggHandler)
+	commandsStruct.Register("addfeed", command.AddFeedHandler)
+	commandsStruct.Register("feeds", command.FeedsHandler)
 
 	args := os.Args
 

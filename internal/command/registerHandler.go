@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
 	"github.com/abdullahshahad-w/blog-aggregator-go/internal/database"
 	"github.com/google/uuid"
 )
