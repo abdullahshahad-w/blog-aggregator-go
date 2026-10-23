@@ -8,18 +8,17 @@ type Command struct {
 }
 
 type Commands struct {
-	cmdMap map[string]func (*State, Command) error
+	CmdMap map[string]func (*State, Command) error
 }
 
-func (c *Commands) run(s *State, cmd Command) error {
-	if val, ok := c.cmdMap[cmd.Name]; !ok {
+func (c *Commands) Run(s *State, cmd Command) error {
+	if val, ok := c.CmdMap[cmd.Name]; !ok {
 		return errors.New("This command is not available")
 	} else {
-		val(s, cmd)
-		return nil
+		return val(s, cmd)
 	}
 }
 
-func (c *Commands) register(name string, f func(*State, Command) error) {
-	c.cmdMap[name] = f
+func (c *Commands) Register(name string, f func(*State, Command) error) {
+	c.CmdMap[name] = f
 }

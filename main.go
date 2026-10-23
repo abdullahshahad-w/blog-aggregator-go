@@ -1,23 +1,39 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"os"
+
 	"github.com/abdullahshahad-w/blog-aggregator-go/internal/command"
 	"github.com/abdullahshahad-w/blog-aggregator-go/internal/config"
+	"github.com/abdullahshahad-w/blog-aggregator-go/internal/database"
+	_ "github.com/lib/pq"
 )
 
 func main() {
 	cfg, err := config.Read()
 	if err != nil {
 		log.Fatal(err)
-	}	
+	}
 
-	state := command.State{Cfg: &cfg}
+	db, err := sql.Open("postgres", cfg.DbUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	commandMap := make(map[string]func (*command.State, command.Command) error)
+	dbQueries := database.New(db)
 
-	commandMap["login"] = command.HandlerLogin
+	state := command.State{Db: dbQueries, Cfg: &cfg}
+
+	commandsStruct := command.Commands{
+		CmdMap: map[string]func (*command.State, command.Command) error{},
+	}
+
+	commandsStruct.Register("login", command.HandlerLogin)
+	commandsStruct.Register("register", command.RegisterHangler)
+	commandsStruct.Register("reset", command.ResetHandler)
+	commandsStruct.Register("users", command.UsersHandler)
 
 	args := os.Args
 
@@ -30,7 +46,7 @@ func main() {
 		Args: args[2:],
 	}
 
-	if err := commandMap[cmdStct.Name](&state, cmdStct); err != nil {
+	if err := commandsStruct.Run(&state, cmdStct); err != nil {
 		log.Fatal(err)
 	}
 }
