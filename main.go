@@ -26,17 +26,20 @@ func main() {
 
 	state := command.State{Db: dbQueries, Cfg: &cfg}
 
-	commandsStruct := command.Commands{
+	cmds := command.Commands{
 		CmdMap: map[string]func (*command.State, command.Command) error{},
 	}
 
-	commandsStruct.Register("login", command.HandlerLogin)
-	commandsStruct.Register("register", command.RegisterHangler)
-	commandsStruct.Register("reset", command.ResetHandler)
-	commandsStruct.Register("users", command.UsersHandler)
-	commandsStruct.Register("agg", command.AggHandler)
-	commandsStruct.Register("addfeed", command.AddFeedHandler)
-	commandsStruct.Register("feeds", command.FeedsHandler)
+	cmds.Register("login", command.HandlerLogin)
+	cmds.Register("register", command.RegisterHangler)
+	cmds.Register("reset", command.ResetHandler)
+	cmds.Register("users", command.UsersHandler)
+	cmds.Register("agg", command.AggHandler)
+	cmds.Register("addfeed", command.MiddlewareLoggedIn(command.AddFeedHandler))
+	cmds.Register("feeds", command.FeedsHandler)
+	cmds.Register("follow", command.MiddlewareLoggedIn(command.FollowHandler))
+	cmds.Register("following", command.MiddlewareLoggedIn(command.FollowingHandler))
+	cmds.Register("unfollow", command.MiddlewareLoggedIn(command.UnfollowHandler))
 
 	args := os.Args
 
@@ -49,7 +52,7 @@ func main() {
 		Args: args[2:],
 	}
 
-	if err := commandsStruct.Run(&state, cmdStct); err != nil {
+	if err := cmds.Run(&state, cmdStct); err != nil {
 		log.Fatal(err)
 	}
 }

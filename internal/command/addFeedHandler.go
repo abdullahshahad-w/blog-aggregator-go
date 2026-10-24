@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func AddFeedHandler(s *State, cmd Command) error {
+func AddFeedHandler(s *State, cmd Command, user database.User) error {
 	if len(cmd.Args) < 2 {
 		return errors.New("Usage: go run . addfeed <feed name> <feed url>")
 	}
@@ -17,22 +17,25 @@ func AddFeedHandler(s *State, cmd Command) error {
 	feedName := cmd.Args[0]
 	feedUrl := cmd.Args[1]
 
-	currentUser, err := s.Db.GetUserByName(context.Background(), s.Cfg.CurrentUserName)
-	if err != nil {
-		return err
-	}
-
-	userId := currentUser.ID
-
 	result, err := s.Db.CreateFeed(context.Background(), database.CreateFeedParams{
 		ID: uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Name: feedName,
 		Url: feedUrl,
-		UserID: userId,
+		UserID: user.ID,
 	})
-	
+	if err != nil {
+		return err
+	}
+
+	_, err = s.Db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		ID: uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID: user.ID,
+		FeedID: result.ID,
+	})
 	if err != nil {
 		return err
 	}
